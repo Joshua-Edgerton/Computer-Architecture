@@ -2,22 +2,26 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+MUL = 0b10100010
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.register = [0] * 8
+        self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
-        self.running = True
 
     def ram_read(self, read_value):
         value = self.ram[read_value]
         return value
 
     def ram_write(self, write_value, address):
-        self.ram[address] = self.ram[write_value]
+        self.ram[address] = write_value
 
     def load(self):
         """Load a program into memory."""
@@ -72,4 +76,23 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while True:
+            opcode = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            if opcode == LDI:
+                # set the value of a register to an integer
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            elif opcode == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            elif opcode == MUL:
+                self.alu(opcode, operand_a, operand_b)
+                self.pc += 3
+            elif opcode == HLT:
+                # exiting the system if HLT is encountered
+                sys.exit(0)
+            else:
+                print(f"Did not work")
+                sys.exit(1)
