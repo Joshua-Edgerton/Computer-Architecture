@@ -27,6 +27,11 @@ INC = 0b01100101
 DEC = 0b01100110
 CALL = 0b01010000
 RET = 0b00010001
+# Sprint
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -46,6 +51,12 @@ class CPU:
         self.branchtable[POP] = self.handle_POP
         self.branchtable[CALL] = self.handle_CALL
         self.branchtable[RET] = self.handle_RET
+        self.branchtable[ADD] = self.handle_ADD
+        # Sprint \/
+        self.branchtable[CMP] = self.handle_CMP
+        # self.branchtable[JMP] = self.handle_JMP
+        # self.branchtable[JEQ] = self.handle_JEQ
+        # self.branchtable[JNE] = self.handle_JNE
 
     def ram_read(self, read_value):
         value = self.ram[read_value]
@@ -100,7 +111,7 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
+        if op == ADD:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
@@ -135,10 +146,23 @@ class CPU:
         print(self.reg[operand_a])
 
     def handle_ADD(self, operand_a, operand_b):
-        self.alu("ADD", operand_a, operand_b)
+        self.alu(ADD, operand_a, operand_b)
 
     def handle_MUL(self, operand_a, operand_b):
         self.alu(MUL, operand_a, operand_b)
+
+    # Sprint \/
+
+    def handle_CMP(self, operand_a, operand_b):
+        self.alu(CMP, operand_a, operand_b)
+    
+    # def handle_JMP(self, register):
+
+    # def handle_JEQ(self, register):
+
+    # def handle_JNE(self, register):
+
+    # Sprint /\
 
     def handle_PUSH(self, operand_a, _):
         self.reg[self.stack_pointer] -= 1
