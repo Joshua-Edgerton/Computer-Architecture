@@ -41,6 +41,7 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.fl = 0b00000000
         self.stack_pointer = 7
         self.branchtable = {}
         self.reg[self.stack_pointer] = 0xF4
@@ -54,9 +55,9 @@ class CPU:
         self.branchtable[ADD] = self.handle_ADD
         # Sprint \/
         self.branchtable[CMP] = self.handle_CMP
-        # self.branchtable[JMP] = self.handle_JMP
-        # self.branchtable[JEQ] = self.handle_JEQ
-        # self.branchtable[JNE] = self.handle_JNE
+        self.branchtable[JMP] = self.handle_JMP
+        self.branchtable[JEQ] = self.handle_JEQ
+        self.branchtable[JNE] = self.handle_JNE
 
     def ram_read(self, read_value):
         value = self.ram[read_value]
@@ -116,6 +117,17 @@ class CPU:
         elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == CMP:
+            if reg_a == reg_b:
+                # Code for equal flag
+                self.fl = 0b00000001
+            elif reg_a < reg_b:
+                # Code for Less-than flag
+                self.fl = 0b00000010
+            elif reg_a > reg_b:
+                # Code for Greater-than flag
+                self.fl = 0b00000100
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -127,7 +139,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -156,12 +168,21 @@ class CPU:
     def handle_CMP(self, operand_a, operand_b):
         self.alu(CMP, operand_a, operand_b)
     
-    # def handle_JMP(self, register):
+    def handle_JMP(self, r):
+        self.pc = self.reg[r]
 
-    # def handle_JEQ(self, register):
+    def handle_JEQ(self, r):
+        if self.fl & 0b00000001:
+            self.pc = self.reg[r]
+        else:
+            self.pc += 2
 
-    # def handle_JNE(self, register):
-
+    def handle_JNE(self, register):
+        if self.fl ^ 0b00000001:
+            self.pc = self.reg[r]
+        else:
+            self.pc += 2
+            
     # Sprint /\
 
     def handle_PUSH(self, operand_a, _):
