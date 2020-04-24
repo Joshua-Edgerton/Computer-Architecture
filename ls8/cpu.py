@@ -127,6 +127,8 @@ class CPU:
             elif reg_a > reg_b:
                 # Code for Greater-than flag
                 self.fl = 0b00000100
+            else:
+                self.fl = 0b00000000
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -178,7 +180,7 @@ class CPU:
             self.pc += 2
 
     def handle_JNE(self, r):
-        if self.fl ^ 0b00000001:
+        if self.fl != 0b00000001:
             self.pc = self.reg[r]
         else:
             self.pc += 2
