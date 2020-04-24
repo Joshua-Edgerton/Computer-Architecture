@@ -25,6 +25,8 @@ PUSH = 0b01000101
 POP = 0b01000110
 INC = 0b01100101
 DEC = 0b01100110
+CALL = 0b01010000
+RET = 0b00010001
 
 class CPU:
     """Main CPU class."""
@@ -42,6 +44,8 @@ class CPU:
         self.branchtable[PRN] = self.handle_PRN
         self.branchtable[PUSH] = self.handle_PUSH
         self.branchtable[POP] = self.handle_POP
+        self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[RET] = self.handle_RET
 
     def ram_read(self, read_value):
         value = self.ram[read_value]
@@ -130,6 +134,9 @@ class CPU:
     def handle_PRN(self, operand_a, _):
         print(self.reg[operand_a])
 
+    def handle_ADD(self, operand_a, operand_b):
+        self.alu("ADD", operand_a, operand_b)
+
     def handle_MUL(self, operand_a, operand_b):
         self.alu(MUL, operand_a, operand_b)
 
@@ -141,6 +148,19 @@ class CPU:
         self.reg[operand_a] = self.ram[self.reg[self.stack_pointer]]
         self.reg[self.stack_pointer] += 1
 
+    def handle_CALL(self, operand_a, _):
+        return_addr = self.pc + 2
+        self.reg[self.stack_pointer] -= 1
+        self.ram[self.reg[self.stack_pointer]] = return_addr
+
+        dest_addr = self.reg[operand_a]
+        self.pc = dest_addr
+
+    def handle_RET(self, _, __):
+        register = 0
+        self.handle_POP(register, __)
+        self.pc = self.reg[register]
+
     def run(self):
         """Run the CPU."""
         self.running = True
@@ -148,6 +168,7 @@ class CPU:
         while True:
             opcode = self.ram_read(self.pc)
             inst_len = ((opcode & 0b11000000) >> 6) + 1
+            incr_pc = (opcode & 0b10000) >> 4
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             if opcode == HLT:
@@ -157,4 +178,5 @@ class CPU:
                 self.branchtable[opcode](operand_a, operand_b)
             except:
                 print(f"Did not work")
-            self.pc += inst_len
+            if not incr_pc == 1:
+                self.pc += inst_len
