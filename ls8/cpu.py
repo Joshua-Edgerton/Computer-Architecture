@@ -139,7 +139,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            self.fl,
+            #self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -177,12 +177,12 @@ class CPU:
         else:
             self.pc += 2
 
-    def handle_JNE(self, register):
+    def handle_JNE(self, r):
         if self.fl ^ 0b00000001:
             self.pc = self.reg[r]
         else:
             self.pc += 2
-            
+
     # Sprint /\
 
     def handle_PUSH(self, operand_a, _):
