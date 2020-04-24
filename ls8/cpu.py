@@ -41,7 +41,10 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
-        self.fl = 0b00000000
+        self.fl = [0] * 8
+        self.fl_lt = 5
+        self.fl_gt = 6
+        self.fl_equal = 7
         self.stack_pointer = 7
         self.branchtable = {}
         self.reg[self.stack_pointer] = 0xF4
@@ -118,17 +121,16 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         #elif op == "SUB": etc
         elif op == CMP:
-            if reg_a == reg_b:
-                # Code for equal flag
-                self.fl = 0b00000001
-            elif reg_a < reg_b:
-                # Code for Less-than flag
-                self.fl = 0b00000010
-            elif reg_a > reg_b:
-                # Code for Greater-than flag
-                self.fl = 0b00000100
+            if self.reg[reg_a] > self.reg[reg_b]:
+                self.fl[self.fl_gt] = 1
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.fl[self.fl_lt] = 1
+            elif self.reg[reg_a] == self.reg[reg_b]:
+                self.fl[self.fl_equal] = 1
             else:
-                self.fl = 0b00000000
+                self.fl[self.fl_lt] = 0
+                self.fl[self.fl_gt] = 0
+                self.fl[self.fl_equal] = 0
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -170,17 +172,17 @@ class CPU:
     def handle_CMP(self, operand_a, operand_b):
         self.alu(CMP, operand_a, operand_b)
     
-    def handle_JMP(self, r):
+    def handle_JMP(self, r, _):
         self.pc = self.reg[r]
 
-    def handle_JEQ(self, r):
-        if self.fl & 0b00000001:
+    def handle_JEQ(self, r, _):
+        if self.fl[self.fl_equal] == 1:
             self.pc = self.reg[r]
         else:
             self.pc += 2
 
-    def handle_JNE(self, r):
-        if self.fl != 0b00000001:
+    def handle_JNE(self, r, _):
+        if self.fl[self.fl_equal] == 0:
             self.pc = self.reg[r]
         else:
             self.pc += 2
